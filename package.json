@@ -1,0 +1,16 @@
+{
+  "name": "node-usvfs",
+  "version": "1.0.0",
+  "description": "node bindings for usvfs",
+  "main": "index.js",
+  "scripts": {
+    "install": "autogypi && node-gyp configure build"
+  },
+  "author": "Sebastian Herbord",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "autogypi": "^0.2.2",
+    "nan": "^2.11.0",
+    "node-gyp": "^3.8.0"
+  }
+}
