@@ -13,10 +13,10 @@
                 }]
             ],
             "include_dirs": [
-              "D:/usvfs_build/build/usvfs/include",
+              "./usvfs/include",
             ],
             "library_dirs": [
-              "D:/usvfs_build/install/libs",
+              "./usvfs_build/install/libs",
             ],
             "libraries": [
               "usvfs_x64"

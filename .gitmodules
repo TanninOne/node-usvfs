@@ -1,0 +1,4 @@
+[submodule "usvfs"]
+	path = usvfs
+	url = https://github.com/ModOrganizer2/usvfs
+	branch = master
