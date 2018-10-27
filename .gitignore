@@ -2,3 +2,4 @@ node_modules
 auto-top.gypi
 auto.gypi
 build
+usvfs_build
