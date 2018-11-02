@@ -1,12 +1,12 @@
 {
   "name": "node-usvfs",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "node bindings for usvfs",
   "main": "index.js",
   "scripts": {
     "checkout_usvfs": "git clone --recurse-submodules -j8 https://github.com/ModOrganizer2/usvfs || echo \"usvfs already cloned\"",
-    "build_usvfs": "npm run checkout_usvfs && node build_usvfs.js",
-    "install": "autogypi && npm run build_usvfs && node-gyp configure build"
+    "build_usvfs": "yarn run checkout_usvfs && node build_usvfs.js",
+    "install": "autogypi && yarn run build_usvfs && node-gyp configure build"
   },
   "author": "Sebastian Herbord",
   "license": "GPL-3.0",
