@@ -11,7 +11,6 @@ const cp = require('child_process');
 const vsWhere = path.join(process.env['ProgramFiles(x86)'], 'Microsoft Visual Studio', 'Installer', 'vswhere.exe');
 const vsConfig = cp.execSync(`"${vsWhere}"`).toString();
 const vsInstPath = vsConfig.split('\r\n').find(line => line.startsWith('installationPath:')).substr(18);
-console.log(vsInstPath);
 process.env['vsInstallDir'] = vsInstPath + '\\';
 
 const msbuildLib = require('msbuild');
@@ -22,6 +21,9 @@ msbuild.sourcePath = './usvfs/vsbuild/usvfs_dll.vcxproj';
 msbuild.configuration = 'Release';
 msbuild.overrideParams.push('/p:VisualStudioVersion=15.0');
 msbuild.overrideParams.push('/P:Platform=x64');
+if (process.env.SDKVersion !== undefined) {
+    msbuild.overrideParams.push(`/P:WindowsTargetPlatformVersion=${process.env.SDKVersion}`);
+}
 msbuild.overrideParams.push(`/P:BOOST_PATH=${process.env.BOOST_PATH}`);
 msbuild.overrideParams.push('/P:STAGING_BASE=..\\..\\usvfs_build');
 

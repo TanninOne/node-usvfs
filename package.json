@@ -4,7 +4,7 @@
   "description": "node bindings for usvfs",
   "main": "index.js",
   "scripts": {
-    "checkout_usvfs": "git clone --recurse-submodules -j8 https://github.com/ModOrganizer2/usvfs",
+    "checkout_usvfs": "git clone --recurse-submodules -j8 https://github.com/ModOrganizer2/usvfs || echo \"usvfs already cloned\"",
     "build_usvfs": "npm run checkout_usvfs && node build_usvfs.js",
     "install": "autogypi && npm run build_usvfs && node-gyp configure build"
   },
