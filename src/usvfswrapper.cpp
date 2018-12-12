@@ -99,6 +99,18 @@ NAN_METHOD(DisconnectVFS) {
   DisconnectVFS();
 }
 
+NAN_METHOD(InitLogging) {
+  Isolate* isolate = Isolate::GetCurrent();
+
+  bool toLocal = false;
+
+  if (info.Length() > 0) {
+    toLocal = info[0]->BooleanValue();
+  }
+
+  InitLogging(toLocal);
+}
+
 NAN_METHOD(ClearVirtualMappings) {
   ClearVirtualMappings();
 }
@@ -207,6 +219,7 @@ NAN_MODULE_INIT(Init) {
   Nan::Set(target, "VirtualLinkFile"_n, GetFunction(New<FunctionTemplate>(VirtualLinkFile)).ToLocalChecked());
   Nan::Set(target, "VirtualLinkDirectoryStatic"_n, GetFunction(New<FunctionTemplate>(VirtualLinkDirectoryStatic)).ToLocalChecked());
   Nan::Set(target, "CreateProcessHooked"_n, GetFunction(New<FunctionTemplate>(CreateProcessHooked)).ToLocalChecked());
+  Nan::Set(target, "InitLogging"_n, GetFunction(New<FunctionTemplate>(InitLogging)).ToLocalChecked());
 }
 
 NODE_MODULE(winapi, Init)

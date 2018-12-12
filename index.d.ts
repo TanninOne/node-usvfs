@@ -16,7 +16,7 @@ export interface ILinkParameters {
 export function CreateVFS(params: IUSVFSParameters);
 export function ConnectVFS(params: IUSVFSParameters);
 export function DisconnectVFS();
-
+export function InitLogging(toLocal?: boolean);
 export function ClearVirtualMappings();
 export function VirtualLinkFile(source: string, destination: string, parameters: ILinkParameters);
 export function VirtualLinkDirectoryStatic(source: string, destination: string, parameters: ILinkParameters);
