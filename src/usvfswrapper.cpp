@@ -91,7 +91,7 @@ NAN_METHOD(ConnectVFS) {
   initParameters(&param, info[0]->ToObject());
   
   if (!ConnectVFS(&param)) {
-    isolate->ThrowException(WinApiException(::GetLastError(), "CreateVFS"));
+    isolate->ThrowException(WinApiException(::GetLastError(), "ConnectVFS"));
   }
 }
 
