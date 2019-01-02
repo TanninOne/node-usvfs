@@ -201,13 +201,14 @@ NAN_METHOD(CreateProcessHooked) {
   std::wstring currentDirectory = toWC(info[2]);
   
   std::wstringstream str;
-  if (!info[3]->IsUndefined()) {
+  if (!info[3]->IsNullOrUndefined()) {
     Local<Object> envObj = info[3]->ToObject();
     Local<Array> keys = envObj->GetOwnPropertyNames();
     for (uint32_t i = 0; i < keys->Length(); ++i) {
-      str << toWC(keys->Get(i)) << L"=" << toWC(envObj->Get(keys->Get(i))) << L"\0";
+      str << toWC(keys->Get(i)) << L"=" << toWC(envObj->Get(keys->Get(i)));
+      str.put('\0');
     }
-    str << L"\0";
+    str.put('\0');
   }
 
   std::wstring environment = str.str();
