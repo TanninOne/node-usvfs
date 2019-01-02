@@ -34,17 +34,22 @@ const msbuildLib = require('msbuild');
 
 const msbuild = new msbuildLib(); 
 msbuild.version = '15.0';
-msbuild.sourcePath = './usvfs/vsbuild/usvfs_dll.vcxproj';
 msbuild.configuration = 'Release';
 msbuild.overrideParams.push('/p:VisualStudioVersion=15.0');
-msbuild.overrideParams.push('/P:Platform=x64');
 if (process.env.SDKVersion !== undefined) {
     msbuild.overrideParams.push(`/P:WindowsTargetPlatformVersion=${process.env.SDKVersion}`);
 }
 msbuild.overrideParams.push(`/P:BOOST_PATH=${process.env.BOOST_PATH}`);
-msbuild.overrideParams.push('/P:STAGING_BASE=..\\..\\usvfs_build');
+
+let queue = [
+    { project: 'usvfs_dll', platform: 'x86', output: 'usvfs_build_32' },
+    { project: 'usvfs_proxy', platform: 'x86', output: 'usvfs_build_32' },
+    { project: 'usvfs_dll', platform: 'x64', output: 'usvfs_build' },
+    { project: 'usvfs_proxy', platform: 'x64', output: 'usvfs_build' },
+];
 
 let first = true;
+
 msbuild.on('error', () => {
     if (first) {
         first = false;
@@ -52,4 +57,25 @@ msbuild.on('error', () => {
     }
 });
 
-msbuild.build();
+function build(item) {
+    msbuild.sourcePath = `./usvfs/vsbuild/${item.project}.vcxproj`;
+    msbuild.overrideParams.push(`/P:STAGING_BASE=..\\..\\${item.output}`);
+    msbuild.overrideParams.push(`/P:Platform=${item.platform}`);
+
+    first = true;
+
+    msbuild.build();
+}
+
+function buildNext() {
+    build(queue[0]);
+}
+
+msbuild.on('done', () => {
+    queue = queue.slice(1);
+    if (queue.length > 0) {
+        buildNext();
+    }
+});
+
+buildNext();
