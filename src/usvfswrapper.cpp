@@ -67,7 +67,7 @@ NAN_METHOD(CreateVFS) {
   Isolate* isolate = Isolate::GetCurrent();
 
   if (info.Length() != 1) {
-    Nan::ThrowError("Expected one parameters (parameters)");
+    Nan::ThrowError("Expected one parameter (settings)");
     return;
   }
 
@@ -83,7 +83,7 @@ NAN_METHOD(ConnectVFS) {
   Isolate* isolate = Isolate::GetCurrent();
 
   if (info.Length() != 1) {
-    Nan::ThrowError("Expected one parameters (parameters)");
+    Nan::ThrowError("Expected one parameter (settings)");
     return;
   }
 
@@ -149,7 +149,7 @@ NAN_METHOD(VirtualLinkFile) {
   uint32_t flags = convertFlags(info[2]->ToObject());
 
   if (!VirtualLinkFile(source.c_str(), destination.c_str(), flags)) {
-    isolate->ThrowException(WinApiException(::GetLastError(), "CreateVFS"));
+    isolate->ThrowException(WinApiException(::GetLastError(), "VirtualLinkFile"));
   }
 }
 
@@ -174,7 +174,7 @@ NAN_METHOD(CreateProcessHooked) {
   Isolate* isolate = Isolate::GetCurrent();
 
   if (info.Length() != 4) {
-    Nan::ThrowError("Expected three parameters (applicationName, commandLine, currentDirectory, environment)");
+    Nan::ThrowError("Expected four parameters (applicationName, commandLine, currentDirectory, environment)");
     return;
   }
 
@@ -207,7 +207,7 @@ NAN_METHOD(CreateProcessHooked) {
           environment.length() == 0 ? nullptr : &environment[0],
           currentDirectory.length() == 0 ? nullptr : currentDirectory.c_str(),
           &startupInfo, &processInformation)) {
-    isolate->ThrowException(WinApiException(::GetLastError(), "CreateVFS"));
+    isolate->ThrowException(WinApiException(::GetLastError(), "CreateProcessHooked"));
   }
 }
 
