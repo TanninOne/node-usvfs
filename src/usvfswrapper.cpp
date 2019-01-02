@@ -136,6 +136,24 @@ uint32_t convertFlags(const Local<Object> flagsDict) {
   return flags;
 }
 
+NAN_METHOD(GetLogMessages) {
+  Isolate* isolate = Isolate::GetCurrent();
+
+  bool blocking = false;
+
+  if (info.Length() > 0) {
+    blocking = info[0]->BooleanValue();
+  }
+
+  static char buffer[1024];
+  if (GetLogMessages(buffer, 1024, blocking)) {
+    info.GetReturnValue().Set(New<String>(buffer).ToLocalChecked());
+  }
+  else {
+    info.GetReturnValue().SetNull();
+  }
+}
+
 NAN_METHOD(VirtualLinkFile) {
   Isolate* isolate = Isolate::GetCurrent();
 
@@ -220,6 +238,7 @@ NAN_MODULE_INIT(Init) {
   Nan::Set(target, "VirtualLinkDirectoryStatic"_n, GetFunction(New<FunctionTemplate>(VirtualLinkDirectoryStatic)).ToLocalChecked());
   Nan::Set(target, "CreateProcessHooked"_n, GetFunction(New<FunctionTemplate>(CreateProcessHooked)).ToLocalChecked());
   Nan::Set(target, "InitLogging"_n, GetFunction(New<FunctionTemplate>(InitLogging)).ToLocalChecked());
+  Nan::Set(target, "GetLogMessages"_n, GetFunction(New<FunctionTemplate>(GetLogMessages)).ToLocalChecked());
 }
 
 NODE_MODULE(winapi, Init)
