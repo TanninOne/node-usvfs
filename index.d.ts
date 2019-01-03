@@ -28,4 +28,4 @@ export function GetLogMessage(blocking?: boolean): string;
  * will continue if the callback returns true
  * @param callback 
  */
-export function PollLogMessage(logCB: (message: string) => boolean, callback: (err: Error) => void): void;
+export function PollLogMessages(logCB: (message: string) => boolean, callback: (err: Error) => void): void;
