@@ -136,7 +136,61 @@ uint32_t convertFlags(const Local<Object> flagsDict) {
   return flags;
 }
 
-NAN_METHOD(GetLogMessages) {
+class LogWorker : public AsyncProgressWorker {
+  static const int BUFFER_SIZE = 1024;
+public:
+  LogWorker(Callback *logCB, Callback *callback)
+    : AsyncProgressWorker(callback)
+    , m_Progress(logCB)
+    , m_Buffer(new char[BUFFER_SIZE]) {}
+
+  ~LogWorker() {
+    delete m_Progress;
+  }
+
+  virtual void Execute(const AsyncProgressWorker::ExecutionProgress &progress) override {
+    while (m_Loop) {
+      GetLogMessages(m_Buffer.get(), BUFFER_SIZE, true);
+      progress.Send(m_Buffer.get(), strlen(m_Buffer.get()));
+    }
+  }
+
+  virtual void HandleProgressCallback(const char *data, size_t size) override {
+    Nan::HandleScope scope;
+
+    Local<Value> argv[] = {
+      Nan::New<String>(data, size).ToLocalChecked()
+    };
+
+    v8::MaybeLocal<v8::Value> res = Nan::Call(*m_Progress, 1, argv);
+    if (!res.ToLocalChecked()->BooleanValue()) {
+      m_Loop = false;
+    }
+  }
+
+  void HandleOKCallback () {
+    Nan::HandleScope scope;
+
+    Local<Value> argv[] = {
+        Null()
+    };
+
+    callback->Call(1, argv, async_resource);
+  }
+
+private:
+  Callback *m_Progress;
+  bool m_Loop { true };
+  std::unique_ptr<char[]> m_Buffer;
+};
+
+NAN_METHOD(PollLogMessages) {
+  Callback *logCB = new Callback(To<Function>(info[0]).ToLocalChecked());
+  Callback *callback = new Callback(To<Function>(info[1]).ToLocalChecked());
+  AsyncQueueWorker(new LogWorker(logCB, callback));
+}
+
+NAN_METHOD(GetLogMessage) {
   Isolate* isolate = Isolate::GetCurrent();
 
   bool blocking = false;
@@ -239,7 +293,8 @@ NAN_MODULE_INIT(Init) {
   Nan::Set(target, "VirtualLinkDirectoryStatic"_n, GetFunction(New<FunctionTemplate>(VirtualLinkDirectoryStatic)).ToLocalChecked());
   Nan::Set(target, "CreateProcessHooked"_n, GetFunction(New<FunctionTemplate>(CreateProcessHooked)).ToLocalChecked());
   Nan::Set(target, "InitLogging"_n, GetFunction(New<FunctionTemplate>(InitLogging)).ToLocalChecked());
-  Nan::Set(target, "GetLogMessages"_n, GetFunction(New<FunctionTemplate>(GetLogMessages)).ToLocalChecked());
+  Nan::Set(target, "GetLogMessage"_n, GetFunction(New<FunctionTemplate>(GetLogMessage)).ToLocalChecked());
+  Nan::Set(target, "PollLogMessages"_n, GetFunction(New<FunctionTemplate>(PollLogMessages)).ToLocalChecked());
 }
 
 NODE_MODULE(winapi, Init)

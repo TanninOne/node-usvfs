@@ -22,3 +22,10 @@ export function VirtualLinkFile(source: string, destination: string, parameters:
 export function VirtualLinkDirectoryStatic(source: string, destination: string, parameters: ILinkParameters);
 
 export function CreateProcessHooked(applicationName: string, commandLine: string, currentDirectory: string, environment: any);
+export function GetLogMessage(blocking?: boolean): string;
+/**
+ * poll log messages asynchronously (in a separate thread). Every log line will trigger a call to the callback and polling
+ * will continue if the callback returns true
+ * @param callback 
+ */
+export function PollLogMessage(logCB: (message: string) => boolean, callback: (err: Error) => void): void;
