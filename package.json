@@ -4,7 +4,7 @@
   "description": "node bindings for usvfs",
   "main": "index.js",
   "scripts": {
-    "checkout_usvfs": "git clone --recurse-submodules -j8 https://github.com/ModOrganizer2/usvfs || echo \"usvfs already cloned\"",
+    "checkout_usvfs": "git clone --recurse-submodules -j8 https://github.com/ModOrganizer2/usvfs -b v0.4.3 || echo \"usvfs already cloned\"",
     "build_usvfs": "yarn run checkout_usvfs && node build_usvfs.js",
     "install": "autogypi && yarn run build_usvfs && node-gyp configure build"
   },
@@ -12,8 +12,8 @@
   "license": "GPL-3.0",
   "dependencies": {
     "autogypi": "^0.2.2",
-    "msbuild": "^1.0.2",
+    "msbuild": "^1.1.2",
     "nan": "^2.11.0",
-    "node-gyp": "^3.8.0"
+    "node-gyp": "^4.0.0"
   }
 }
