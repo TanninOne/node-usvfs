@@ -13,15 +13,15 @@ export interface ILinkParameters {
   recursive?: boolean;
 }
 
-export function CreateVFS(params: IUSVFSParameters);
-export function ConnectVFS(params: IUSVFSParameters);
-export function DisconnectVFS();
-export function InitLogging(toLocal?: boolean);
-export function ClearVirtualMappings();
-export function VirtualLinkFile(source: string, destination: string, parameters: ILinkParameters);
-export function VirtualLinkDirectoryStatic(source: string, destination: string, parameters: ILinkParameters);
+export function CreateVFS(params: IUSVFSParameters): void;
+export function ConnectVFS(params: IUSVFSParameters): void;
+export function DisconnectVFS(): void;
+export function InitLogging(toLocal?: boolean): void;
+export function ClearVirtualMappings(): void;
+export function VirtualLinkFile(source: string, destination: string, parameters: ILinkParameters): void;
+export function VirtualLinkDirectoryStatic(source: string, destination: string, parameters: ILinkParameters): void;
 
-export function CreateProcessHooked(applicationName: string, commandLine: string, currentDirectory: string, environment: any);
+export function CreateProcessHooked(applicationName: string, commandLine: string, currentDirectory: string, environment: any): void;
 export function GetLogMessage(blocking?: boolean): string;
 /**
  * poll log messages asynchronously (in a separate thread). Every log line will trigger a call to the callback and polling
