@@ -45,26 +45,27 @@ Local<String> operator "" _n(const char *input, size_t) {
   return Nan::New(input).ToLocalChecked();
 }
 
-std::wstring toWC(const Local<Value> &input) {
+std::wstring toWC(Isolate *isolate, const Local<Value> &input) {
   if (input->IsNullOrUndefined()) {
     return std::wstring();
   }
-  String::Utf8Value temp(input);
+  String::Utf8Value temp(isolate, input);
   return toWC(*temp, CodePage::UTF8, temp.length());
 }
 
 
-void initParameters(USVFSParameters *target, const Local<Object> &parameters) {
+void initParameters(Local<Context> context, USVFSParameters *target, const Local<Object> &parameters) {
   memset(target, 0x00, sizeof(USVFSParameters));
-  memcpy(target->instanceName, *Utf8String(parameters->Get("instanceName"_n)), 64);
-  memcpy(target->currentSHMName, *Utf8String(parameters->Get("instanceName"_n)), 60);
-  _snprintf(target->currentInverseSHMName, 60, "inv_%s", *Utf8String(parameters->Get("instanceName"_n)));
-  target->debugMode = parameters->Get("debugMode"_n)->BooleanValue();
-  target->logLevel = static_cast<LogLevel>(parameters->Get("logLevel"_n)->Int32Value());
+  memcpy(target->instanceName, *Utf8String(parameters->Get(context, "instanceName"_n).ToLocalChecked()), 64);
+  memcpy(target->currentSHMName, *Utf8String(parameters->Get(context, "instanceName"_n).ToLocalChecked()), 60);
+  _snprintf(target->currentInverseSHMName, 60, "inv_%s", *Utf8String(parameters->Get(context, "instanceName"_n).ToLocalChecked()));
+  target->debugMode = parameters->Get(context, "debugMode"_n).ToLocalChecked()->BooleanValue(context->GetIsolate());
+  target->logLevel = static_cast<LogLevel>(parameters->Get(context, "logLevel"_n).ToLocalChecked()->Int32Value(context).ToChecked());
 }
 
 NAN_METHOD(CreateVFS) {
-  Isolate* isolate = Isolate::GetCurrent();
+  Local<Context> context = Nan::GetCurrentContext();
+  Isolate* isolate = context->GetIsolate();
 
   if (info.Length() != 1) {
     Nan::ThrowError("Expected one parameter (settings)");
@@ -72,7 +73,7 @@ NAN_METHOD(CreateVFS) {
   }
 
   USVFSParameters param;
-  initParameters(&param, info[0]->ToObject());
+  initParameters(context, &param, info[0]->ToObject(context).ToLocalChecked());
 
   if (!CreateVFS(&param)) {
     isolate->ThrowException(WinApiException(::GetLastError(), "CreateVFS"));
@@ -80,7 +81,8 @@ NAN_METHOD(CreateVFS) {
 }
 
 NAN_METHOD(ConnectVFS) {
-  Isolate* isolate = Isolate::GetCurrent();
+  Local<Context> context = Nan::GetCurrentContext();
+  Isolate* isolate = context->GetIsolate();
 
   if (info.Length() != 1) {
     Nan::ThrowError("Expected one parameter (settings)");
@@ -88,7 +90,7 @@ NAN_METHOD(ConnectVFS) {
   }
 
   USVFSParameters param;
-  initParameters(&param, info[0]->ToObject());
+  initParameters(context, &param, info[0]->ToObject(context).ToLocalChecked());
   
   if (!ConnectVFS(&param)) {
     isolate->ThrowException(WinApiException(::GetLastError(), "ConnectVFS"));
@@ -105,7 +107,7 @@ NAN_METHOD(InitLogging) {
   bool toLocal = false;
 
   if (info.Length() > 0) {
-    toLocal = info[0]->BooleanValue();
+    toLocal = info[0]->BooleanValue(isolate);
   }
 
   InitLogging(toLocal);
@@ -115,7 +117,9 @@ NAN_METHOD(ClearVirtualMappings) {
   ClearVirtualMappings();
 }
 
-uint32_t convertFlags(const Local<Object> flagsDict) {
+uint32_t convertFlags(Local<Context> context, const Local<Object> flagsDict) {
+  Isolate *isolate = context->GetIsolate();
+
   static const std::map<std::string, uint32_t> LINK_FLAGS = {
     { "failIfExists", LINKFLAG_FAILIFEXISTS },
     { "monitorChanges", LINKFLAG_MONITORCHANGES },
@@ -124,11 +128,12 @@ uint32_t convertFlags(const Local<Object> flagsDict) {
   };
 
   uint32_t flags = 0;
-  Local<Array> keys = flagsDict->GetPropertyNames();
+  Local<Array> keys = flagsDict->GetPropertyNames(context).ToLocalChecked();
 
   for (uint32_t i = 0; i < keys->Length(); ++i) {
-    if (flagsDict->Get(keys->Get(i))->BooleanValue()) {
-      auto iter = LINK_FLAGS.find(*Utf8String(keys->Get(i)->ToString()));
+    Local<Value> key = keys->Get(context, i).ToLocalChecked();
+    if (flagsDict->Get(context, key).ToLocalChecked()->BooleanValue(isolate)) {
+      auto iter = LINK_FLAGS.find(*Utf8String(keys->Get(context, i).ToLocalChecked()->ToString(context).ToLocalChecked()));
       flags |= iter->second;
     }
   }
@@ -156,6 +161,7 @@ public:
   }
 
   virtual void HandleProgressCallback(const char *data, size_t size) override {
+    Local<Context> context = Nan::GetCurrentContext();
     Nan::HandleScope scope;
 
     Local<Value> argv[] = {
@@ -163,7 +169,7 @@ public:
     };
 
     v8::MaybeLocal<v8::Value> res = Nan::Call(*m_Progress, 1, argv);
-    if (!res.ToLocalChecked()->BooleanValue()) {
+    if (!res.ToLocalChecked()->BooleanValue(context->GetIsolate())) {
       m_Loop = false;
     }
   }
@@ -191,12 +197,13 @@ NAN_METHOD(PollLogMessages) {
 }
 
 NAN_METHOD(GetLogMessage) {
-  Isolate* isolate = Isolate::GetCurrent();
+  Local<Context> context = Nan::GetCurrentContext();
+  Isolate *isolate = context->GetIsolate();
 
   bool blocking = false;
 
   if (info.Length() > 0) {
-    blocking = info[0]->BooleanValue();
+    blocking = info[0]->BooleanValue(isolate);
   }
 
   static char buffer[1024];
@@ -209,16 +216,17 @@ NAN_METHOD(GetLogMessage) {
 }
 
 NAN_METHOD(VirtualLinkFile) {
-  Isolate* isolate = Isolate::GetCurrent();
+  Local<Context> context = Nan::GetCurrentContext();
+  Isolate* isolate = context->GetIsolate();
 
   if (info.Length() != 3) {
     Nan::ThrowError("Expected three parameters (source, destination, flags)");
     return;
   }
 
-  std::wstring source = toWC(info[0]);
-  std::wstring destination = toWC(info[1]);
-  uint32_t flags = convertFlags(info[2]->ToObject());
+  std::wstring source = toWC(isolate, info[0]);
+  std::wstring destination = toWC(isolate, info[1]);
+  uint32_t flags = convertFlags(context, info[2]->ToObject(context).ToLocalChecked());
 
   if (!VirtualLinkFile(source.c_str(), destination.c_str(), flags)) {
     isolate->ThrowException(WinApiException(::GetLastError(), "VirtualLinkFile"));
@@ -226,16 +234,17 @@ NAN_METHOD(VirtualLinkFile) {
 }
 
 NAN_METHOD(VirtualLinkDirectoryStatic) {
-  Isolate* isolate = Isolate::GetCurrent();
+  Local<Context> context = Nan::GetCurrentContext();
+  Isolate* isolate = context->GetIsolate();
 
   if (info.Length() != 3) {
     Nan::ThrowError("Expected three parameters (source, destination, flags)");
     return;
   }
 
-  std::wstring source = toWC(info[0]);
-  std::wstring destination = toWC(info[1]);
-  uint32_t flags = convertFlags(info[2]->ToObject());
+  std::wstring source = toWC(isolate, info[0]);
+  std::wstring destination = toWC(isolate, info[1]);
+  uint32_t flags = convertFlags(context, info[2]->ToObject(context).ToLocalChecked());
 
   if (!VirtualLinkDirectoryStatic(source.c_str(), destination.c_str(), flags)) {
     isolate->ThrowException(WinApiException(::GetLastError(), "VirtualLinkDirectoryStatic"));
@@ -243,23 +252,26 @@ NAN_METHOD(VirtualLinkDirectoryStatic) {
 }
 
 NAN_METHOD(CreateProcessHooked) {
-  Isolate* isolate = Isolate::GetCurrent();
+  Local<Context> context = Nan::GetCurrentContext();
+  Isolate* isolate = context->GetIsolate();
 
   if (info.Length() != 4) {
     Nan::ThrowError("Expected four parameters (applicationName, commandLine, currentDirectory, environment)");
     return;
   }
 
-  std::wstring applicationName = toWC(info[0]);
-  std::wstring commandLine = toWC(info[1]);
-  std::wstring currentDirectory = toWC(info[2]);
+  std::wstring applicationName = toWC(isolate, info[0]);
+  std::wstring commandLine = toWC(isolate, info[1]);
+  std::wstring currentDirectory = toWC(isolate, info[2]);
   
   std::wstringstream str;
   if (!info[3]->IsNullOrUndefined()) {
-    Local<Object> envObj = info[3]->ToObject();
-    Local<Array> keys = envObj->GetOwnPropertyNames();
+    Local<Object> envObj = info[3]->ToObject(context).ToLocalChecked();
+    Local<Array> keys = envObj->GetOwnPropertyNames(context).ToLocalChecked();
     for (uint32_t i = 0; i < keys->Length(); ++i) {
-      str << toWC(keys->Get(i)) << L"=" << toWC(envObj->Get(keys->Get(i)));
+      auto key = keys->Get(context, i).ToLocalChecked();
+      auto value = envObj->Get(context, key).ToLocalChecked();
+      str << toWC(isolate, key) << L"=" << toWC(isolate, value);
       str.put('\0');
     }
     str.put('\0');
