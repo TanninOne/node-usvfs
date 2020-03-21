@@ -59,7 +59,7 @@ void initParameters(Local<Context> context, USVFSParameters *target, const Local
   memcpy(target->instanceName, *Utf8String(parameters->Get(context, "instanceName"_n).ToLocalChecked()), 64);
   memcpy(target->currentSHMName, *Utf8String(parameters->Get(context, "instanceName"_n).ToLocalChecked()), 60);
   _snprintf(target->currentInverseSHMName, 60, "inv_%s", *Utf8String(parameters->Get(context, "instanceName"_n).ToLocalChecked()));
-  target->debugMode = parameters->Get(context, "debugMode"_n).ToLocalChecked()->BooleanValue(context).ToChecked();
+  target->debugMode = parameters->Get(context, "debugMode"_n).ToLocalChecked()->BooleanValue(context->GetIsolate());
   target->logLevel = static_cast<LogLevel>(parameters->Get(context, "logLevel"_n).ToLocalChecked()->Int32Value(context).ToChecked());
 }
 
@@ -102,13 +102,12 @@ NAN_METHOD(DisconnectVFS) {
 }
 
 NAN_METHOD(InitLogging) {
-  Local<Context> context = Nan::GetCurrentContext();
-  Isolate* isolate = context->GetIsolate();
+  Isolate* isolate = Isolate::GetCurrent();
 
   bool toLocal = false;
 
   if (info.Length() > 0) {
-    toLocal = info[0]->BooleanValue(context).ToChecked();
+    toLocal = info[0]->BooleanValue(isolate);
   }
 
   InitLogging(toLocal);
@@ -133,7 +132,7 @@ uint32_t convertFlags(Local<Context> context, const Local<Object> flagsDict) {
 
   for (uint32_t i = 0; i < keys->Length(); ++i) {
     Local<Value> key = keys->Get(context, i).ToLocalChecked();
-    if (flagsDict->Get(context, key).ToLocalChecked()->BooleanValue(context).ToChecked()) {
+    if (flagsDict->Get(context, key).ToLocalChecked()->BooleanValue(isolate)) {
       auto iter = LINK_FLAGS.find(*Utf8String(keys->Get(context, i).ToLocalChecked()->ToString(context).ToLocalChecked()));
       flags |= iter->second;
     }
@@ -170,7 +169,7 @@ public:
     };
 
     v8::MaybeLocal<v8::Value> res = Nan::Call(*m_Progress, 1, argv);
-    if (!res.ToLocalChecked()->BooleanValue(context).ToChecked()) {
+    if (!res.ToLocalChecked()->BooleanValue(context->GetIsolate())) {
       m_Loop = false;
     }
   }
@@ -204,7 +203,7 @@ NAN_METHOD(GetLogMessage) {
   bool blocking = false;
 
   if (info.Length() > 0) {
-    blocking = info[0]->BooleanValue(context).ToChecked();
+    blocking = info[0]->BooleanValue(isolate);
   }
 
   static char buffer[1024];

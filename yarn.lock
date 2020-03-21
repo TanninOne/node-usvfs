@@ -65,7 +65,6 @@ asynckit@^0.4.0:
 autogypi@^0.2.2:
   version "0.2.2"
   resolved "https://registry.yarnpkg.com/autogypi/-/autogypi-0.2.2.tgz#258bab5f7857755b09beac6a641fea130ff4622d"
-  integrity sha1-JYurX3hXdVsJvqxqZB/qEw/0Yi0=
   dependencies:
     bluebird "^3.4.0"
     commander "~2.9.0"
@@ -94,9 +93,8 @@ bcrypt-pbkdf@^1.0.0:
     tweetnacl "^0.14.3"
 
 bluebird@^3.4.0:
-  version "3.7.2"
-  resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.7.2.tgz#9f229c15be272454ffa973ace0dbee79a1b0c36f"
-  integrity sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==
+  version "3.5.1"
+  resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.1.tgz#d9551f9de98f1fcda1e683d17ee91a0602ee2eb9"
 
 brace-expansion@^1.1.7:
   version "1.1.11"
@@ -136,7 +134,6 @@ combined-stream@^1.0.6, combined-stream@~1.0.6:
 commander@~2.9.0:
   version "2.9.0"
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.9.0.tgz#9c99094176e12240cb22d6c5146098400fe0f7d4"
-  integrity sha1-nJkJQXbhIkDLItbFFGCYQA/g99Q=
   dependencies:
     graceful-readlink ">= 1.0.0"
 
@@ -282,7 +279,6 @@ graceful-fs@^4.2.2:
 "graceful-readlink@>= 1.0.0":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/graceful-readlink/-/graceful-readlink-1.0.1.tgz#4cafad76bc62f02fa039b2f94e9a3dd3a391a725"
-  integrity sha1-TK+tdrxi8C+gObL5Tpo906ORpyU=
 
 har-schema@^2.0.0:
   version "2.0.0"
@@ -593,7 +589,6 @@ request@^2.88.0:
 resolve@~1.1.7:
   version "1.1.7"
   resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.1.7.tgz#203114d82ad2c5ed9e8e0411b3932875e889e97b"
-  integrity sha1-IDEU2CrSxe2ejgQRs5ModeiJ6Xs=
 
 rimraf@^2.6.3:
   version "2.7.1"
